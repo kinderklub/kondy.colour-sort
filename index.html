@@ -1,0 +1,2131 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Colour Sort - Kindy Klub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Three.js for Animated 3D Classroom Diorama -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+      margin: 0;
+      padding: 0;
+      font-family: 'Quicksand', sans-serif !important;
+    }
+
+    body {
+      background: #E0F2FE;
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      color: #334155;
+      position: relative;
+    }
+
+    /* 3D DIORAMA BACKGROUND CANVAS CONTAINER */
+    #canvas3d-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 1;
+      pointer-events: auto;
+    }
+
+    /* CONTAINER UTAMA */
+    #app {
+      width: 100%;
+      max-width: 500px;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      background: rgba(255, 255, 255, 0.65);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      box-shadow: 0 10px 40px rgba(0,0,0,0.12);
+      z-index: 10;
+      transition: background 0.3s ease;
+    }
+
+    .screen {
+      display: none;
+      width: 100%;
+      height: 100%;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px;
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 10;
+      overflow-y: auto;
+    }
+
+    .screen.active {
+      display: flex;
+    }
+
+    /* BUTANG */
+    .btn {
+      font-weight: 800;
+      border: none;
+      border-radius: 22px;
+      padding: 14px 22px;
+      font-size: 1.05rem;
+      cursor: pointer;
+      box-shadow: 0 6px 0 rgba(0, 0, 0, 0.15);
+      transition: transform 0.1s, box-shadow 0.1s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .btn:active {
+      transform: translateY(4px);
+      box-shadow: 0 2px 0 rgba(0, 0, 0, 0.15);
+    }
+
+    .btn-sm {
+      padding: 6px 14px;
+      font-size: 0.85rem;
+      border-radius: 14px;
+      box-shadow: 0 3px 0 rgba(0, 0, 0, 0.12);
+    }
+
+    .btn-primary { background: #FF6B6B; color: white; }
+    .btn-secondary { background: #4ECDC4; color: white; }
+    .btn-yellow { background: #FFE66D; color: #4A4A4A; }
+    .btn-purple { background: #A855F7; color: white; }
+    .btn-pink { background: #EC4899; color: white; }
+    .btn-outline { 
+      background: rgba(255, 255, 255, 0.95); 
+      color: #334155; 
+      border: 2px solid #CBD5E1; 
+    }
+
+    /* HUD */
+    .hud {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      z-index: 20;
+    }
+
+    .hud-badge {
+      background: rgba(255, 255, 255, 0.96);
+      border-radius: 18px;
+      padding: 8px 12px;
+      font-weight: 800;
+      font-size: 0.92rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .icon-btn {
+      height: 42px;
+      padding: 0 12px;
+      border-radius: 21px;
+      background: rgba(255, 255, 255, 0.96);
+      border: none;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 0.92rem;
+      font-weight: 800;
+      color: #334155;
+      gap: 6px;
+    }
+
+    .icon-btn-round {
+      width: 42px;
+      height: 42px;
+      padding: 0;
+      border-radius: 50%;
+    }
+
+    .svg-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      vertical-align: middle;
+      flex-shrink: 0;
+    }
+
+    /* LOGO & MENU */
+    .logo-container {
+      text-align: center;
+      margin-top: 6px;
+    }
+
+    .logo-title {
+      font-size: 2.3rem;
+      font-weight: 800;
+      color: #FF5252;
+      text-shadow: 2px 2px 0px #FFF, 4px 4px 0px rgba(0,0,0,0.12);
+      letter-spacing: 0.5px;
+    }
+
+    .logo-subtitle {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #0D9488;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    .play-area {
+      flex: 1;
+      width: 100%;
+      position: relative;
+      margin: 6px 0;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-auto-rows: minmax(80px, auto);
+      gap: 12px;
+      align-content: center;
+      justify-items: center;
+      padding: 8px;
+    }
+
+    .object-card {
+      width: 90px;
+      height: 90px;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 22px;
+      box-shadow: 0 8px 18px rgba(0,0,0,0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: grab;
+      touch-action: none;
+      position: relative;
+      transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
+      z-index: 5;
+    }
+
+    .object-card.selected {
+      transform: scale(1.15);
+      box-shadow: 0 0 0 4px #FFD166, 0 12px 24px rgba(0,0,0,0.18);
+      animation: pulse 1s infinite alternate;
+    }
+
+    .object-card.dragging {
+      position: fixed;
+      z-index: 1000;
+      pointer-events: none;
+      transform: scale(1.25);
+      box-shadow: 0 16px 32px rgba(0,0,0,0.28);
+      opacity: 0.96;
+    }
+
+    /* KAWASAN BAKUL */
+    .baskets-container {
+      width: 100%;
+      display: flex;
+      justify-content: space-evenly;
+      align-items: flex-end;
+      gap: 8px;
+      padding-bottom: 6px;
+      min-height: 135px;
+    }
+
+    .basket-wrapper {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      max-width: 130px;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .basket-wrapper.bounce {
+      animation: basketBounce 0.5s ease;
+    }
+
+    .basket-wrapper.pulse-highlight {
+      animation: basketPulse 0.8s infinite alternate;
+    }
+
+    .basket-label {
+      background: white;
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-weight: 800;
+      font-size: 0.72rem;
+      margin-top: 4px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      text-align: center;
+      line-height: 1.15;
+    }
+
+    .mascot-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(255, 255, 255, 0.92);
+      padding: 8px 16px;
+      border-radius: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+      margin-bottom: 4px;
+      width: 100%;
+    }
+
+    .speech-bubble {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: #334155;
+    }
+
+    /* BUBBLE KEMAJUAN */
+    .progress-bubbles {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .bubble-dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #CBD5E1;
+      border: 2px solid white;
+      transition: background 0.3s, transform 0.3s;
+    }
+
+    .bubble-dot.active {
+      background: #4ADE80;
+      transform: scale(1.2);
+    }
+
+    /* FOOTER */
+    .footer-text {
+      font-size: 0.75rem;
+      color: #475569;
+      font-weight: 700;
+      text-align: center;
+      padding: 6px 0;
+      width: 100%;
+      text-shadow: 0 1px 2px rgba(255,255,255,0.8);
+    }
+
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.45);
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      padding: 16px;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal-card {
+      background: white;
+      width: 100%;
+      max-width: 420px;
+      border-radius: 28px;
+      padding: 24px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.18);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      max-height: 88vh;
+      overflow-y: auto;
+      position: relative;
+    }
+
+    .modal-title {
+      font-size: 1.45rem;
+      font-weight: 800;
+      color: #1E293B;
+      text-align: center;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      width: 100%;
+    }
+
+    .collection-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      width: 100%;
+    }
+
+    .color-badge-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 10px 4px;
+      background: #F8FAFC;
+      border-radius: 16px;
+      gap: 4px;
+      text-align: center;
+    }
+
+    .color-circle {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      border: 3px solid white;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .achievement-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: #F8FAFC;
+      padding: 12px;
+      border-radius: 16px;
+      width: 100%;
+      border: 2px solid #F1F5F9;
+    }
+
+    .achievement-item.unlocked-card {
+      border-color: #FDE047;
+      background: #FEFCE8;
+    }
+
+    .toast-feedback {
+      position: absolute;
+      top: 35%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(255, 255, 255, 0.98);
+      padding: 12px 24px;
+      border-radius: 20px;
+      font-weight: 800;
+      font-size: 1.15rem;
+      color: #FF5252;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.18);
+      pointer-events: none;
+      z-index: 150;
+      text-align: center;
+      max-width: 90%;
+      animation: popFade 1.5s forwards;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1.05); }
+      100% { transform: scale(1.15); }
+    }
+
+    @keyframes basketBounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-12px); }
+    }
+
+    @keyframes basketPulse {
+      0% { transform: scale(1); }
+      100% { transform: scale(1.06); }
+    }
+
+    @keyframes popFade {
+      0% { opacity: 0; transform: translate(-50%, -40%) scale(0.8); }
+      20% { opacity: 1; transform: translate(-50%, -50%) scale(1.05); }
+      80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+      100% { opacity: 0; transform: translate(-50%, -60%) scale(0.9); }
+    }
+
+    @keyframes mascotJump {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 3D DIORAMA BACKGROUND CANVAS -->
+  <div id="canvas3d-container"></div>
+
+  <!-- CONTAINER UTAMA APP -->
+  <div id="app">
+
+    <!-- 1. SKRIN MENU UTAMA -->
+    <div id="screen-main" class="screen active">
+      <!-- HUD ATAS -->
+      <div class="hud">
+        <div style="display: flex; gap: 6px;">
+          <div class="hud-badge" style="color: #CA8A04;" id="badge-menu-stars">
+            <span class="svg-icon" id="icon-menu-star"></span>
+            <span id="menu-stars">0</span>
+          </div>
+          <div class="hud-badge" style="color: #D97706;" id="badge-menu-coins">
+            <span class="svg-icon" id="icon-menu-coin"></span>
+            <span id="menu-coins">0</span>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 6px;">
+          <button class="icon-btn" onclick="toggleGlobalLanguage()">
+            <span class="svg-icon" id="icon-lang-globe"></span>
+            <span id="lang-btn-text">BM</span>
+          </button>
+          <button class="icon-btn icon-btn-round" onclick="toggleAudio()" id="btn-audio-toggle" title="Kesan Bunyi"></button>
+          <button class="icon-btn icon-btn-round" onclick="toggleMusic()" id="btn-music-toggle" title="Muzik Latar"></button>
+          <button class="icon-btn icon-btn-round" onclick="openAchievements()" id="btn-achievements-hud"></button>
+        </div>
+      </div>
+
+      <!-- LOGO & MASCOT -->
+      <div class="logo-container">
+        <div id="mascot-menu" style="width: 105px; height: 105px; margin: 0 auto;"></div>
+        <div class="logo-title">Colour Sort</div>
+        <div class="logo-subtitle">Kindy Klub</div>
+        <div id="welcome-msg" style="font-weight: 700; color: #475569; margin-top: 6px;">Jom susun warna!</div>
+      </div>
+
+      <!-- MOD PERMAINAN -->
+      <div style="width: 100%; display: flex; flex-direction: column; gap: 10px; padding: 0 8px;">
+        <button class="btn btn-primary" onclick="startGameSession('5')" style="width: 100%;">
+          <span class="svg-icon" id="btn-icon-mode-5"></span>
+          <span id="txt-mode-5">5 AKTIVITI</span>
+        </button>
+        <button class="btn btn-secondary" onclick="startGameSession('10')" style="width: 100%;">
+          <span class="svg-icon" id="btn-icon-mode-10"></span>
+          <span id="txt-mode-10">10 AKTIVITI</span>
+        </button>
+        <button class="btn btn-yellow" onclick="startGameSession('free')" style="width: 100%;">
+          <span class="svg-icon" id="btn-icon-mode-free"></span>
+          <span id="txt-mode-free">MAIN BEBAS</span>
+        </button>
+      </div>
+
+      <!-- MENU TAMBAHAN -->
+      <div class="grid-2" style="width: 100%; padding: 0 8px;">
+        <button class="btn btn-purple" onclick="openDailyGift()" style="font-size: 0.95rem;">
+          <span class="svg-icon" id="btn-icon-gift"></span>
+          <span id="txt-daily-gift">Hadiah Harian</span>
+        </button>
+        <button class="btn btn-pink" onclick="openCollection()" style="font-size: 0.95rem;">
+          <span class="svg-icon" id="btn-icon-palette"></span>
+          <span id="txt-collection">Koleksi</span>
+        </button>
+      </div>
+
+      <div class="footer-text">Kindy Klub | All Rights Reserved</div>
+    </div>
+
+    <!-- 2. SKRIN PERMAINAN -->
+    <div id="screen-game" class="screen">
+      <!-- HUD -->
+      <div class="hud">
+        <button class="icon-btn icon-btn-round" onclick="exitToMenu()" id="btn-game-home"></button>
+        
+        <div class="hud-badge">
+          <span id="txt-act-progress">AKTIVITI 1 / 5</span>
+        </div>
+
+        <div style="display: flex; gap: 6px;">
+          <div class="hud-badge" style="color: #CA8A04;">
+            <span class="svg-icon" id="icon-game-star"></span>
+            <span id="game-stars">0</span>
+          </div>
+          <div class="hud-badge" style="color: #D97706;">
+            <span class="svg-icon" id="icon-game-coin"></span>
+            <span id="game-coins">0</span>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 4px;">
+          <button class="icon-btn icon-btn-round" onclick="toggleAudio()" id="game-btn-audio-toggle"></button>
+          <button class="icon-btn icon-btn-round" onclick="toggleMusic()" id="game-btn-music-toggle"></button>
+          <button class="icon-btn" onclick="toggleGlobalLanguage()">
+            <span class="svg-icon" id="game-icon-lang-globe"></span>
+            <span id="game-lang-btn-text">BM</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- MASCOT & ARAHAN -->
+      <div class="mascot-container">
+        <div id="mascot-game" style="width: 48px; height: 48px; flex-shrink: 0;"></div>
+        <div class="speech-bubble" id="mascot-speech">Tarik atau tekan objek ke dalam bakul warna yang betul!</div>
+      </div>
+
+      <!-- BUBBLE KEMAJUAN -->
+      <div class="progress-bubbles" id="sort-progress-bubbles"></div>
+
+      <!-- KAWASAN MAIN (OBJEK) -->
+      <div class="play-area" id="play-area"></div>
+
+      <!-- KAWASAN BAKUL -->
+      <div class="baskets-container" id="baskets-container"></div>
+
+      <div class="footer-text">Kindy Klub | All Rights Reserved</div>
+    </div>
+
+  </div>
+
+  <!-- MODAL-MODAL -->
+
+  <!-- MODAL HADIAH HARIAN -->
+  <div class="modal-overlay" id="modal-daily-gift">
+    <div class="modal-card">
+      <div id="daily-gift-big-icon" style="animation: mascotJump 1s infinite alternate;"></div>
+      <div class="modal-title" id="txt-daily-gift-title">Hadiah Harian</div>
+      <div style="text-align: center; color: #64748B; font-weight: 700;" id="daily-gift-desc">Buka hadiah anda hari ini!</div>
+      
+      <button class="btn btn-yellow" id="btn-claim-gift" onclick="claimDailyGift()" style="width: 100%; padding: 16px; font-size: 1.15rem;">
+        <span class="svg-icon" id="btn-icon-claim-coin"></span>
+        <span id="txt-claim-btn">Tuntut Hadiah</span>
+      </button>
+
+      <button class="btn btn-outline" onclick="closeModal('modal-daily-gift')" style="width: 100%;">
+        <span class="txt-close">Tutup</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- MODAL KOLEKSI -->
+  <div class="modal-overlay" id="modal-collection">
+    <div class="modal-card">
+      <div class="modal-title" id="txt-collection-title">Koleksi Warna</div>
+      <div class="collection-grid" id="collection-grid-container"></div>
+      <button class="btn btn-secondary" onclick="closeModal('modal-collection')" style="width: 100%; margin-top: 10px;">
+        <span class="txt-close">Tutup</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- MODAL PENCAPAIAN -->
+  <div class="modal-overlay" id="modal-achievements">
+    <div class="modal-card">
+      <div class="modal-title" id="txt-achievements-title">Pencapaian</div>
+      <div style="width: 100%; display: flex; flex-direction: column; gap: 8px;" id="achievements-list-container"></div>
+      <button class="btn btn-secondary" onclick="closeModal('modal-achievements')" style="width: 100%; margin-top: 10px;">
+        <span class="txt-close">Tutup</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- MODAL SESI SELESAI -->
+  <div class="modal-overlay" id="modal-session-complete">
+    <div class="modal-card">
+      <div id="session-complete-popper"></div>
+      <div class="modal-title" id="txt-complete-title">SESI SELESAI!</div>
+      
+      <div style="display: flex; gap: 16px; margin: 10px 0;">
+        <div class="hud-badge" style="font-size: 1.15rem; color: #CA8A04;">
+          <span class="svg-icon" id="complete-star-icon"></span>
+          <span>+<span id="complete-stars">0</span></span>
+        </div>
+        <div class="hud-badge" style="font-size: 1.15rem; color: #D97706;">
+          <span class="svg-icon" id="complete-coin-icon"></span>
+          <span>+<span id="complete-coins">0</span></span>
+        </div>
+      </div>
+
+      <div style="font-size: 0.95rem; font-weight: 700; color: #64748B;" id="complete-totals-summary">
+        Jumlah Bintang: <span id="summary-total-stars">0</span> | Jumlah Syiling: <span id="summary-total-coins">0</span>
+      </div>
+
+      <div style="width: 100%; display: flex; flex-direction: column; gap: 10px; margin-top: 8px;">
+        <button class="btn btn-primary" onclick="replaySession()" style="width: 100%;">
+          <span class="svg-icon" id="btn-icon-replay"></span>
+          <span id="txt-play-again">Main Lagi</span>
+        </button>
+        <button class="btn btn-outline" onclick="exitToMenu()" style="width: 100%;">
+          <span class="svg-icon" id="btn-icon-back-home"></span>
+          <span id="txt-back-menu">Kembali</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* ===================================================
+       1. CUTE PRESCHOOL SVG LIBRARY (REPLACES ALL EMOJIS)
+       =================================================== */
+    const SVG_ICONS = {
+      star: (size = 22) => `
+        <svg width="${size}" height="${size}" viewBox="0 0 100 100" fill="none">
+          <path d="M50 8L62 34L91 38L70 58L76 87L50 73L24 87L30 58L9 38L38 34L50 8Z" fill="#FACC15" stroke="#EAB308" stroke-width="6" stroke-linejoin="round"/>
+          <circle cx="42" cy="48" r="4" fill="#854D0E"/>
+          <circle cx="58" cy="48" r="4" fill="#854D0E"/>
+          <circle cx="44" cy="46" r="1.5" fill="#FFF"/>
+          <circle cx="60" cy="46" r="1.5" fill="#FFF"/>
+          <path d="M46 56Q50 60 54 56" stroke="#854D0E" stroke-width="3" stroke-linecap="round"/>
+          <ellipse cx="36" cy="54" rx="4" ry="2.5" fill="#F472B6" opacity="0.6"/>
+          <ellipse cx="64" cy="54" rx="4" ry="2.5" fill="#F472B6" opacity="0.6"/>
+        </svg>`,
+
+      coin: (size = 22) => `
+        <svg width="${size}" height="${size}" viewBox="0 0 100 100" fill="none">
+          <circle cx="50" cy="50" r="44" fill="#F59E0B" stroke="#D97706" stroke-width="6"/>
+          <circle cx="50" cy="50" r="34" fill="#FBBF24"/>
+          <polygon points="50,26 56,42 74,44 60,56 64,74 50,64 36,74 40,56 26,44 44,42" fill="#F59E0B"/>
+          <circle cx="34" cy="34" r="5" fill="#FEF3C7" opacity="0.8"/>
+        </svg>`,
+
+      audioOn: (size = 22) => `
+        <svg width="${size}" height="${size}" viewBox="0 0 100 100" fill="none">
+          <path d="M20 40H38L62 20V80L38 60H20C16 60 14 58 14 54V46C14 42 16 40 20 40Z" fill="#0D9488" stroke="#0F766E" stroke-width="6" stroke-linejoin="round"/>
+          <path d="M72 34C78 43 78 57 72 66" stroke="#0D9488" stroke-width="7" stroke-linecap="round"/>
+          <path d="M82 22C92 37 92 63 82 78" stroke="#0D9488" stroke-width="7" stroke-linecap="round"/>
+        </svg>`,
+
+      audioOff: (size = 22) => `
+        <svg width="${size}" height="${size}" viewBox="0 0 100 100" fill="none">
+          <path d="M20 40H38L62 20V80L38 60H20C16 60 14 58 14 54V46C14 42 16 40 20 40Z" fill="#94A3B8" stroke="#64748B" stroke-width="6" stroke-linejoin="round"/>
+          <line x1="72" y1="36" x2="90" y2="64" stroke="#EF4444" stroke-width="7" stroke-linecap="round"/>
+          <line x1="90" y1="36" x2="72" y2="64" stroke="#EF4444" stroke-width="7" stroke-linecap="round"/>
+        </svg>`,
+
+      musicOn: (size = 22) => `
+        <svg width="${size}" height="${size}" viewBox="0 0 100 100" fill="none">
+          <circle cx="34" cy="70" r="14" fill="#A855F7" stroke="#7E22CE" stroke-width="5"/>
+          <circle cx="74" cy="60" r="14" fill="#A855F7" stroke="#7E22CE" stroke-width="5"/>
+          <rect x="42" y="24" width="8" height="46" fill="#7E22CE"/>
+          <rect x="82" y="14" width="8" height="46" fill="#7E22CE"/>
+          <polygon points="42,24 90,14 90,26 42,36" fill="#A855F7" stroke="#7E22CE" stroke-width="4"/>
+          <circle cx="30" cy="66" r="4" fill="#FFF" opacity="0.6"/>
+        </svg>`,
+
+      musicOff: (size = 22) => `
+        <svg width="${size}" height="${size}" viewBox="0 0 100 100" fill="none">
+          <circle cx="34" cy="70" r="14" fill="#CBD5E1" stroke="#94A3B8" stroke-width="5"/>
+          <circle cx="74" cy="60" r="14" fill="#CBD5E1" stroke="#94A3B8" stroke-width="5"/>
+          <rect x="42" y="24" width="8" height="46" fill="#94A3B8"/>
+          <rect x="82" y="14" width="8" height="46" fill="#94A3B8"/>
+          <polygon points="42,24 90,14 90,26 42,36" fill="#CBD5E1" stroke="#94A3B8" stroke-width="4"/>
+          <line x1="20" y1="20" x2="80" y2="80" stroke="#EF4444" stroke-width="7" stroke-linecap="round"/>
+        </svg>`,
+
+      globe: (size = 20) => `
+        <svg width="${size}" height="${size}" viewBox="0 0 100 100" fill="none">
+          <circle cx="50" cy="50" r="44" fill="#38BDF8" stroke="#0284C7" stroke-width="6"/>
+          <path d="M22 45C26 38 35 34 44 38C50 41 53 48 48 54C42 61 30 63 22 55Z" fill="#4ADE80"/>
+          <path d="M58 24C65 24 74 29 76 36C78 44 72 49 65 47C59 45 55 35 58 24Z" fill="#4ADE80"/>
+          <path d="M42 68C48 66 56 68 62 74C66 78 64 86 58 90C48 93 38 84 42 68Z" fill="#4ADE80"/>
+          <circle cx="34" cy="30" r="6" fill="#FFF" opacity="0.5"/>
+        </svg>`,
+
+      home: (size = 22) => `
+        <svg width="${size}" height="${size}" viewBox="0 0 100 100" fill="none">
+          <path d="M16 48L50 20L84 48" stroke="#E11D48" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M24 45V82C24 85 27 88 30 88H70C73 88 76 85 76 82V45" fill="#FDA4AF" stroke="#E11D48" stroke-width="7" stroke-linejoin="round"/>
+          <rect x="42" y="58" width="16" height="30" rx="4" fill="#BE123C"/>
+          <rect x="65" y="24" width="8" height="18" fill="#FB7185" stroke="#E11D48" stroke-width="4"/>
+        </svg>`,
+
+      trophy: (size = 24) => `
+        <svg width="${size}" height="${size}" viewBox="0 0 100 100" fill="none">
+          <path d="M30 20H70V48C70 60 62 68 50 68C38 68 30 60 30 48V20Z" fill="#FACC15" stroke="#EAB308" stroke-width="6"/>
+          <path d="M30 28H16C12 28 10 36 14 44C18 52 24 54 30 54" stroke="#EAB308" stroke-width="6" stroke-linecap="round"/>
+          <path d="M70 28H84C88 28 90 36 86 44C82 52 76 54 70 54" stroke="#EAB308" stroke-width="6" stroke-linecap="round"/>
+          <path d="M45 68H55V80H45V68Z" fill="#EAB308"/>
+          <rect x="32" y="80" width="36" height="12" rx="4" fill="#D97706"/>
+          <polygon points="50,30 53,39 63,40 55,47 57,56 50,51 43,56 45,47 37,40 47,39" fill="#FFF" opacity="0.9"/>
+        </svg>`,
+
+      gamepad: (size = 24) => `
+        <svg width="${size}" height="${size}" viewBox="0 0 100 100" fill="none">
+          <rect x="12" y="32" width="76" height="46" rx="23" fill="#FFF" stroke="#FFF" stroke-width="6"/>
+          <path d="M32 46V64M23 55H41" stroke="#FF5252" stroke-width="6" stroke-linecap="round"/>
+          <circle cx="64" cy="50" r="5" fill="#FFE66D"/>
+          <circle cx="75" cy="58" r="5" fill="#4ECDC4"/>
+        </svg>`,
+
+      starBadge: (size = 24) => `
+        <svg width="${size}" height="${size}" viewBox="0 0 100 100" fill="none">
+          <circle cx="50" cy="50" r="42" fill="#FFF" stroke="#FFF" stroke-width="6"/>
+          <polygon points="50,22 58,38 76,40 62,53 66,72 50,62 34,72 38,53 24,40 42,38" fill="#4ECDC4"/>
+          <text x="50" y="58" text-anchor="middle" font-family="'Quicksand', sans-serif" font-weight="800" font-size="20" fill="#FFF">10</text>
+        </svg>`,
+
+      infinity: (size = 24) => `
+        <svg width="${size}" height="${size}" viewBox="0 0 100 100" fill="none">
+          <path d="M34 36C24 36 16 42 16 50C16 58 24 64 34 64C44 64 52 50 52 50C52 50 60 36 70 36C80 36 88 42 88 50C88 58 80 64 70 64C60 64 52 50 52 50C52 50 44 36 34 36Z" stroke="#4A4A4A" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M34 36C24 36 16 42 16 50C16 58 24 64 34 64C44 64 52 50 52 50C52 50 60 36 70 36C80 36 88 42 88 50C88 58 80 64 70 64C60 64 52 50 52 50C52 50 44 36 34 36Z" stroke="#FFF" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>`,
+
+      gift: (size = 24) => `
+        <svg width="${size}" height="${size}" viewBox="0 0 100 100" fill="none">
+          <rect x="18" y="44" width="64" height="46" rx="6" fill="#FFF" stroke="#FFF" stroke-width="5"/>
+          <rect x="14" y="32" width="72" height="16" rx="4" fill="#F3E8FF" stroke="#FFF" stroke-width="5"/>
+          <rect x="44" y="32" width="12" height="58" fill="#FACC15"/>
+          <path d="M50 32C42 16 26 22 42 32ZM50 32C58 16 74 22 58 32Z" fill="#FACC15" stroke="#CA8A04" stroke-width="4"/>
+        </svg>`,
+
+      palette: (size = 24) => `
+        <svg width="${size}" height="${size}" viewBox="0 0 100 100" fill="none">
+          <path d="M50 14C28 14 12 30 12 52C12 70 26 86 46 86C52 86 56 82 56 76C56 73 54 70 54 67C54 62 58 58 64 58H72C82 58 90 50 90 40C90 26 72 14 50 14Z" fill="#FFF" stroke="#FFF" stroke-width="6"/>
+          <circle cx="30" cy="36" r="6" fill="#EF4444"/>
+          <circle cx="48" cy="28" r="6" fill="#FACC15"/>
+          <circle cx="68" cy="34" r="6" fill="#38BDF8"/>
+          <circle cx="74" cy="48" r="6" fill="#4ADE80"/>
+          <circle cx="42" cy="72" r="5" fill="#EC4899"/>
+        </svg>`,
+
+      check: (size = 20) => `
+        <svg width="${size}" height="${size}" viewBox="0 0 100 100" fill="none">
+          <circle cx="50" cy="50" r="44" fill="#22C55E"/>
+          <path d="M30 50L44 64L72 36" stroke="#FFF" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>`,
+
+      lock: (size = 20) => `
+        <svg width="${size}" height="${size}" viewBox="0 0 100 100" fill="none">
+          <rect x="22" y="44" width="56" height="46" rx="8" fill="#CBD5E1" stroke="#64748B" stroke-width="6"/>
+          <path d="M34 44V30C34 20 40 14 50 14C60 14 66 20 66 30V44" stroke="#64748B" stroke-width="8" stroke-linecap="round"/>
+          <circle cx="50" cy="64" r="6" fill="#64748B"/>
+          <path d="M50 70V76" stroke="#64748B" stroke-width="5" stroke-linecap="round"/>
+        </svg>`,
+
+      party: (size = 60) => `
+        <svg width="${size}" height="${size}" viewBox="0 0 100 100" fill="none">
+          <path d="M20 84L48 56L22 42L20 84Z" fill="#F59E0B" stroke="#D97706" stroke-width="5"/>
+          <path d="M48 56L34 70L20 84L22 42L48 56Z" fill="#FBBF24"/>
+          <circle cx="58" cy="36" r="6" fill="#EF4444"/>
+          <circle cx="76" cy="48" r="5" fill="#3B82F6"/>
+          <circle cx="68" cy="22" r="5" fill="#10B981"/>
+          <circle cx="42" cy="24" r="4" fill="#A855F7"/>
+          <path d="M54 44Q64 36 68 46T80 40" stroke="#F472B6" stroke-width="4" fill="none"/>
+          <polygon points="84,24 88,32 96,30 90,36 92,44 86,40 80,44 82,36 76,30 84,32" fill="#FACC15"/>
+        </svg>`,
+
+      replay: (size = 22) => `
+        <svg width="${size}" height="${size}" viewBox="0 0 100 100" fill="none">
+          <path d="M50 16C30 16 16 32 16 50C16 68 30 84 50 84C66 84 79 73 83 58" stroke="#FFF" stroke-width="10" stroke-linecap="round"/>
+          <path d="M50 6L36 20L50 32" stroke="#FFF" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>`
+    };
+
+    /* ===================================================
+       2. TRANSLATIONS (NO ROJAK, 100% CLEAN BM / EN)
+       =================================================== */
+    const TRANSLATIONS = {
+      bm: {
+        welcomeMsg: "Jom susun warna!",
+        act5: "5 AKTIVITI",
+        act10: "10 AKTIVITI",
+        freePlay: "MAIN BEBAS",
+        dailyGift: "Hadiah Harian",
+        dailyGiftDesc: "Buka hadiah anda hari ini!",
+        collection: "Koleksi Warna",
+        achievements: "Pencapaian",
+        activity: "AKTIVITI",
+        currentActivity: "AKTIVITI SEMASA",
+        dragInstruction: "Tarik atau tekan objek ke dalam bakul warna yang betul!",
+        sessionComplete: "SESI SELESAI!",
+        playAgain: "Main Lagi",
+        back: "Kembali",
+        claimGift: "Tuntut Hadiah",
+        alreadyClaimed: "Sudah Dituntut Hari Ini",
+        giftClaimedMsg: "Tahniah! Anda mendapat +10 Syiling!",
+        tryAgain: "Cuba lagi!",
+        nextActivityPrompt: "Tak apa! Jom cuba aktiviti seterusnya!",
+        close: "Tutup",
+        unlockedTxt: "Terbuka ✅",
+        progressTxt: "Kemajuan",
+        colors: {
+          red: "MERAH",
+          blue: "BIRU",
+          yellow: "KUNING",
+          green: "HIJAU",
+          orange: "OREN",
+          pink: "MERAH JAMBU",
+          purple: "UNGU",
+          brown: "COKLAT",
+          grey: "KELABU",
+          turquoise: "FIRUS (TURQUOISE)"
+        },
+        achievementsList: {
+          first_sort: { name: "Penapis Pertama", desc: "Selesaikan aktiviti isihan pertama", reqType: "act", reqVal: 1 },
+          colour_sorter: { name: "Penapis Warna", desc: "Isih 5 aktiviti", reqType: "act", reqVal: 5 },
+          rainbow_sorter: { name: "Penapis Pelangi", desc: "Terokai semua 10 warna", reqType: "col", reqVal: 10 },
+          super_sorter: { name: "Super Sorter", desc: "Selesaikan 25 aktiviti", reqType: "act", reqVal: 25 },
+          sorting_hero: { name: "Wira Isihan", desc: "Selesaikan 50 aktiviti", reqType: "act", reqVal: 50 }
+        }
+      },
+      en: {
+        welcomeMsg: "Let's sort colours!",
+        act5: "5 ACTIVITIES",
+        act10: "10 ACTIVITIES",
+        freePlay: "FREE PLAY",
+        dailyGift: "Daily Gift",
+        dailyGiftDesc: "Open your gift for today!",
+        collection: "Colour Collection",
+        achievements: "Achievements",
+        activity: "ACTIVITY",
+        currentActivity: "CURRENT ACTIVITY",
+        dragInstruction: "Drag or tap the object into the matching colour basket!",
+        sessionComplete: "SESSION COMPLETE!",
+        playAgain: "Play Again",
+        back: "Back",
+        claimGift: "Claim Gift",
+        alreadyClaimed: "Claimed Today",
+        giftClaimedMsg: "Awesome! You received +10 Coins!",
+        tryAgain: "Try again!",
+        nextActivityPrompt: "No problem! Let's try the next activity!",
+        close: "Close",
+        unlockedTxt: "Unlocked ✅",
+        progressTxt: "Progress",
+        colors: {
+          red: "RED",
+          blue: "BLUE",
+          yellow: "YELLOW",
+          green: "GREEN",
+          orange: "ORANGE",
+          pink: "PINK",
+          purple: "PURPLE",
+          brown: "BROWN",
+          grey: "GREY",
+          turquoise: "TURQUOISE"
+        },
+        achievementsList: {
+          first_sort: { name: "First Sort", desc: "Complete first sorting activity", reqType: "act", reqVal: 1 },
+          colour_sorter: { name: "Colour Sorter", desc: "Sort 5 activities", reqType: "act", reqVal: 5 },
+          rainbow_sorter: { name: "Rainbow Sorter", desc: "Discover all 10 colours", reqType: "col", reqVal: 10 },
+          super_sorter: { name: "Super Sorter", desc: "Complete 25 activities", reqType: "act", reqVal: 25 },
+          sorting_hero: { name: "Sorting Hero", desc: "Complete 50 activities", reqType: "act", reqVal: 50 }
+        }
+      }
+    };
+
+    /* ===================================================
+       3. COLOUR DEFINITIONS (10 VIBRANT PRESCHOOL SHADES)
+       =================================================== */
+    const COLOR_DEFS = {
+      red: { hex: "#FF4B4B", dark: "#BE123C" },
+      blue: { hex: "#38BDF8", dark: "#0284C7" },
+      yellow: { hex: "#FACC15", dark: "#CA8A04" },
+      green: { hex: "#4ADE80", dark: "#15803D" },
+      orange: { hex: "#FB923C", dark: "#C2410C" },
+      pink: { hex: "#F472B6", dark: "#BE185D" },
+      purple: { hex: "#A855F7", dark: "#6B21A8" },
+      brown: { hex: "#A16207", dark: "#713F12" },
+      grey: { hex: "#94A3B8", dark: "#475569" },
+      turquoise: { hex: "#2DD4BF", dark: "#0F766E" }
+    };
+
+    /* ===================================================
+       4. MASCOT SVG (KAWAII ANIMAL HELPER)
+       =================================================== */
+    function getMascotSVG(mood = 'idle') {
+      const isHappy = mood === 'happy';
+      return `
+        <svg width="100%" height="100%" viewBox="0 0 100 100" fill="none">
+          <ellipse cx="30" cy="24" rx="12" ry="18" fill="#FBCFE8" stroke="#F472B6" stroke-width="4"/>
+          <ellipse cx="70" cy="24" rx="12" ry="18" fill="#FBCFE8" stroke="#F472B6" stroke-width="4"/>
+          <ellipse cx="30" cy="24" rx="7" ry="12" fill="#F472B6"/>
+          <ellipse cx="70" cy="24" rx="7" ry="12" fill="#F472B6"/>
+          <circle cx="50" cy="55" r="34" fill="#FFFFFF" stroke="#F472B6" stroke-width="5"/>
+          ${isHappy ? `
+            <path d="M36 50C40 44 44 50 44 50" stroke="#334155" stroke-width="4" stroke-linecap="round"/>
+            <path d="M56 50C60 44 64 50 64 50" stroke="#334155" stroke-width="4" stroke-linecap="round"/>
+            <path d="M44 62C47 67 53 67 56 62" stroke="#334155" stroke-width="3" stroke-linecap="round" fill="#F43F5E"/>
+          ` : `
+            <circle cx="40" cy="52" r="4.5" fill="#334155"/>
+            <circle cx="60" cy="52" r="4.5" fill="#334155"/>
+            <circle cx="38.5" cy="50" r="1.5" fill="#FFFFFF"/>
+            <circle cx="58.5" cy="50" r="1.5" fill="#FFFFFF"/>
+            <path d="M46 60Q50 64 54 60" stroke="#334155" stroke-width="3" stroke-linecap="round"/>
+          `}
+          <ellipse cx="32" cy="58" rx="4.5" ry="3" fill="#FDA4AF"/>
+          <ellipse cx="68" cy="58" rx="4.5" ry="3" fill="#FDA4AF"/>
+          <polygon points="50,56 46,53 54,53" fill="#FB7185"/>
+        </svg>`;
+    }
+
+    /* ===================================================
+       5. OBJECT & BASKET SVG GENERATORS
+       =================================================== */
+    const OBJECT_TYPES = [
+      'apple', 'ball', 'balloon', 'flower', 'star', 'heart', 
+      'duck', 'car', 'fish', 'gift', 'iceCream', 'sun', 'kite', 'umbrella', 'book'
+    ];
+
+    function getObjectSVG(type, colorKey) {
+      const hex = (COLOR_DEFS[colorKey] && COLOR_DEFS[colorKey].hex) || "#FF4B4B";
+      const dark = (COLOR_DEFS[colorKey] && COLOR_DEFS[colorKey].dark) || "#BE123C";
+
+      switch(type) {
+        case 'apple':
+          return `<svg width="60" height="60" viewBox="0 0 100 100">
+            <path d="M50,25 C30,10 10,30 10,55 C10,80 35,90 50,90 C65,90 90,80 90,55 C90,30 70,10 50,25 Z" fill="${hex}" stroke="${dark}" stroke-width="5"/>
+            <path d="M50,25 C50,10 60,5 65,5" fill="none" stroke="#7C2D12" stroke-width="6" stroke-linecap="round"/>
+            <path d="M52,15 C60,10 70,15 70,15 C70,15 65,25 52,15 Z" fill="#22C55E"/>
+            <circle cx="35" cy="40" r="6" fill="#FFF" opacity="0.4"/>
+          </svg>`;
+        case 'ball':
+          return `<svg width="60" height="60" viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="42" fill="${hex}" stroke="${dark}" stroke-width="5"/>
+            <path d="M10,50 Q50,20 90,50 Q50,80 10,50 Z" fill="#FFF" opacity="0.3"/>
+            <circle cx="35" cy="30" r="8" fill="#FFF" opacity="0.5"/>
+          </svg>`;
+        case 'balloon':
+          return `<svg width="60" height="60" viewBox="0 0 100 100">
+            <path d="M50,10 C25,10 15,35 15,55 C15,75 35,85 50,85 C65,85 85,75 85,55 C85,35 75,10 50,10 Z" fill="${hex}" stroke="${dark}" stroke-width="5"/>
+            <polygon points="46,85 54,85 50,90" fill="${dark}"/>
+            <path d="M50,90 Q45,95 50,100" fill="none" stroke="#64748B" stroke-width="4"/>
+            <ellipse cx="35" cy="30" rx="6" ry="10" fill="#FFF" opacity="0.4" transform="rotate(-30 35 30)"/>
+          </svg>`;
+        case 'flower':
+          return `<svg width="60" height="60" viewBox="0 0 100 100">
+            <circle cx="50" cy="25" r="16" fill="${hex}"/>
+            <circle cx="75" cy="50" r="16" fill="${hex}"/>
+            <circle cx="50" cy="75" r="16" fill="${hex}"/>
+            <circle cx="25" cy="50" r="16" fill="${hex}"/>
+            <circle cx="50" cy="50" r="18" fill="#FACC15" stroke="#EAB308" stroke-width="4"/>
+          </svg>`;
+        case 'star':
+          return `<svg width="60" height="60" viewBox="0 0 100 100">
+            <polygon points="50,5 63,35 95,38 71,60 78,92 50,75 22,92 29,60 5,38 37,35" fill="${hex}" stroke="${dark}" stroke-width="5"/>
+            <circle cx="42" cy="45" r="4" fill="#333"/><circle cx="58" cy="45" r="4" fill="#333"/>
+            <path d="M45,55 Q50,60 55,55" fill="none" stroke="#333" stroke-width="3" stroke-linecap="round"/>
+          </svg>`;
+        case 'heart':
+          return `<svg width="60" height="60" viewBox="0 0 100 100">
+            <path d="M50,88 C50,88 10,60 10,35 C10,18 24,10 38,10 C46,10 50,16 50,16 C50,16 54,10 62,10 C76,10 90,18 90,35 C90,60 50,88 50,88 Z" fill="${hex}" stroke="${dark}" stroke-width="5"/>
+            <ellipse cx="30" cy="28" rx="5" ry="8" fill="#FFF" opacity="0.4" transform="rotate(-30 30 28)"/>
+          </svg>`;
+        case 'duck':
+          return `<svg width="60" height="60" viewBox="0 0 100 100">
+            <path d="M20,60 C20,45 40,45 50,55 C60,40 85,45 85,65 C85,80 65,85 45,85 C25,85 20,75 20,60 Z" fill="${hex}" stroke="${dark}" stroke-width="5"/>
+            <circle cx="35" cy="35" r="18" fill="${hex}" stroke="${dark}" stroke-width="4"/>
+            <circle cx="30" cy="30" r="3.5" fill="#333"/>
+            <path d="M18,35 C10,35 10,42 18,42 Z" fill="#FB923C" stroke="#C2410C" stroke-width="2"/>
+          </svg>`;
+        case 'car':
+          return `<svg width="60" height="60" viewBox="0 0 100 100">
+            <path d="M15,60 L25,35 L75,35 L88,60 L92,60 C95,60 95,75 92,75 L8,75 C5,75 5,60 8,60 Z" fill="${hex}" stroke="${dark}" stroke-width="5"/>
+            <rect x="32" y="40" width="16" height="15" fill="#E0F2FE" rx="3"/>
+            <rect x="52" y="40" width="16" height="15" fill="#E0F2FE" rx="3"/>
+            <circle cx="30" cy="75" r="10" fill="#334155"/><circle cx="30" cy="75" r="4" fill="#94A3B8"/>
+            <circle cx="70" cy="75" r="10" fill="#334155"/><circle cx="70" cy="75" r="4" fill="#94A3B8"/>
+          </svg>`;
+        case 'fish':
+          return `<svg width="60" height="60" viewBox="0 0 100 100">
+            <path d="M20,50 Q50,15 85,50 Q50,85 20,50 Z" fill="${hex}" stroke="${dark}" stroke-width="5"/>
+            <polygon points="20,50 5,30 5,70" fill="${hex}" stroke="${dark}" stroke-width="4"/>
+            <circle cx="70" cy="40" r="4" fill="#333"/>
+          </svg>`;
+        case 'gift':
+          return `<svg width="60" height="60" viewBox="0 0 100 100">
+            <rect x="20" y="40" width="60" height="45" fill="${hex}" stroke="${dark}" stroke-width="5" rx="4"/>
+            <rect x="15" y="30" width="70" height="15" fill="${hex}" stroke="${dark}" stroke-width="5" rx="3"/>
+            <rect x="44" y="30" width="12" height="55" fill="#FACC15"/>
+            <path d="M50,30 C35,10 20,30 45,30 Z M50,30 C65,10 80,30 55,30 Z" fill="#FACC15"/>
+          </svg>`;
+        case 'iceCream':
+          return `<svg width="60" height="60" viewBox="0 0 100 100">
+            <polygon points="50,90 30,50 70,50" fill="#D97706" stroke="#92400E" stroke-width="3"/>
+            <circle cx="50" cy="40" r="22" fill="${hex}" stroke="${dark}" stroke-width="5"/>
+            <circle cx="50" cy="18" r="6" fill="#EF4444"/>
+          </svg>`;
+        case 'sun':
+          return `<svg width="60" height="60" viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="24" fill="${hex}" stroke="${dark}" stroke-width="5"/>
+            <path d="M50,10 L50,18 M50,82 L50,90 M10,50 L18,50 M82,50 L90,50 M22,22 L28,28 M72,72 L78,78 M22,78 L28,72 M72,22 L78,28" stroke="${hex}" stroke-width="6" stroke-linecap="round"/>
+          </svg>`;
+        case 'kite':
+          return `<svg width="60" height="60" viewBox="0 0 100 100">
+            <polygon points="50,10 80,45 50,90 20,45" fill="${hex}" stroke="${dark}" stroke-width="5"/>
+            <line x1="50" y1="10" x2="50" y2="90" stroke="${dark}" stroke-width="2"/>
+            <line x1="20" y1="45" x2="80" y2="45" stroke="${dark}" stroke-width="2"/>
+          </svg>`;
+        case 'umbrella':
+          return `<svg width="60" height="60" viewBox="0 0 100 100">
+            <path d="M15,55 C15,25 85,25 85,55 Z" fill="${hex}" stroke="${dark}" stroke-width="5"/>
+            <line x1="50" y1="55" x2="50" y2="85" stroke="#475569" stroke-width="4"/>
+            <path d="M50,85 Q50,92 42,92" fill="none" stroke="#475569" stroke-width="4" stroke-linecap="round"/>
+          </svg>`;
+        default:
+          return `<svg width="60" height="60" viewBox="0 0 100 100">
+            <rect x="20" y="20" width="60" height="60" fill="${hex}" stroke="${dark}" stroke-width="5" rx="6"/>
+            <rect x="15" y="20" width="10" height="60" fill="${dark}" rx="2"/>
+            <line x1="35" y1="35" x2="68" y2="35" stroke="#FFF" stroke-width="4" stroke-linecap="round"/>
+            <line x1="35" y1="50" x2="68" y2="50" stroke="#FFF" stroke-width="4" stroke-linecap="round"/>
+          </svg>`;
+      }
+    }
+
+    function getBasketSVG(colorKey) {
+      const hex = (COLOR_DEFS[colorKey] && COLOR_DEFS[colorKey].hex) || "#FF4B4B";
+      const dark = (COLOR_DEFS[colorKey] && COLOR_DEFS[colorKey].dark) || "#BE123C";
+
+      return `
+        <svg width="105" height="95" viewBox="0 0 120 110">
+          <ellipse cx="60" cy="102" rx="45" ry="8" fill="rgba(0,0,0,0.12)"/>
+          <path d="M20,40 C5,40 5,70 20,70" fill="none" stroke="${dark}" stroke-width="5" stroke-linecap="round"/>
+          <path d="M100,40 C115,40 115,70 100,70" fill="none" stroke="${dark}" stroke-width="5" stroke-linecap="round"/>
+          <path d="M20,35 L28,95 C29,98 33,100 37,100 L83,100 C87,100 91,98 92,95 L100,35 Z" fill="${hex}" stroke="${dark}" stroke-width="5"/>
+          <ellipse cx="60" cy="35" rx="44" ry="12" fill="${hex}" stroke="${dark}" stroke-width="5"/>
+          <ellipse cx="60" cy="35" rx="36" ry="8" fill="${dark}" opacity="0.35"/>
+          <path d="M35,48 L85,48 M32,65 L88,65 M30,82 L90,82" stroke="${dark}" stroke-width="3" opacity="0.4" stroke-dasharray="6,4"/>
+        </svg>`;
+    }
+
+    /* ===================================================
+       6. AUDIO ENGINE (LOUD, CRISP WEB AUDIO + BGM LOOP)
+       =================================================== */
+    let audioCtx = null;
+    let masterGainNode = null;
+    let sfxGainNode = null;
+    let bgmGainNode = null;
+
+    let audioEnabled = true;
+    let musicEnabled = true;
+    let bgmTimer = null;
+    let bgmStep = 0;
+
+    const BGM_MELODY = [
+      523.25, 587.33, 659.25, 783.99,
+      659.25, 587.33, 523.25, 0,
+      659.25, 783.99, 880.00, 783.99,
+      659.25, 587.33, 523.25, 0,
+      783.99, 659.25, 587.33, 523.25,
+      587.33, 659.25, 783.99, 0,
+      880.00, 783.99, 659.25, 587.33,
+      523.25, 587.33, 523.25, 0
+    ];
+
+    function initAudio() {
+      if (!audioCtx) {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContextClass) return;
+        audioCtx = new AudioContextClass();
+
+        const compressor = audioCtx.createDynamicsCompressor();
+        compressor.threshold.setValueAtTime(-12, audioCtx.currentTime);
+        compressor.knee.setValueAtTime(30, audioCtx.currentTime);
+        compressor.ratio.setValueAtTime(8, audioCtx.currentTime);
+        compressor.attack.setValueAtTime(0.003, audioCtx.currentTime);
+        compressor.release.setValueAtTime(0.25, audioCtx.currentTime);
+        compressor.connect(audioCtx.destination);
+
+        masterGainNode = audioCtx.createGain();
+        masterGainNode.gain.setValueAtTime(1.0, audioCtx.currentTime);
+        masterGainNode.connect(compressor);
+
+        sfxGainNode = audioCtx.createGain();
+        sfxGainNode.gain.setValueAtTime(0.9, audioCtx.currentTime);
+        sfxGainNode.connect(masterGainNode);
+
+        bgmGainNode = audioCtx.createGain();
+        bgmGainNode.gain.setValueAtTime(0.22, audioCtx.currentTime);
+        bgmGainNode.connect(masterGainNode);
+      }
+
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }
+
+    function unlockAudioContext() {
+      initAudio();
+      if (!audioCtx) return;
+
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume().then(() => {
+          if (musicEnabled && !bgmTimer) startBGM();
+        });
+      } else {
+        if (musicEnabled && !bgmTimer) startBGM();
+      }
+    }
+
+    ['pointerdown', 'touchstart', 'mousedown'].forEach(ev => {
+      window.addEventListener(ev, unlockAudioContext, { once: false, passive: true });
+    });
+
+    function playSound(type) {
+      if (!audioEnabled) return;
+      initAudio();
+      if (!audioCtx) return;
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+
+      const now = audioCtx.currentTime;
+
+      if (type === 'pop') {
+        const osc = audioCtx.createOscillator();
+        const oscGain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(450, now);
+        osc.frequency.exponentialRampToValueAtTime(880, now + 0.12);
+
+        oscGain.gain.setValueAtTime(0.55, now);
+        oscGain.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
+
+        osc.connect(oscGain);
+        oscGain.connect(sfxGainNode);
+        osc.start(now);
+        osc.stop(now + 0.15);
+
+      } else if (type === 'correct') {
+        const notes = [523.25, 659.25, 783.99, 1046.50];
+        notes.forEach((freq, idx) => {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          const noteTime = now + (idx * 0.08);
+
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(freq, noteTime);
+
+          gain.gain.setValueAtTime(0, noteTime);
+          gain.gain.linearRampToValueAtTime(0.45, noteTime + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.005, noteTime + 0.32);
+
+          osc.connect(gain);
+          gain.connect(sfxGainNode);
+          osc.start(noteTime);
+          osc.stop(noteTime + 0.35);
+        });
+
+      } else if (type === 'wrong') {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(320, now);
+        osc.frequency.linearRampToValueAtTime(210, now + 0.18);
+        osc.frequency.linearRampToValueAtTime(260, now + 0.28);
+        osc.frequency.linearRampToValueAtTime(170, now + 0.42);
+
+        gain.gain.setValueAtTime(0.4, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.45);
+
+        osc.connect(gain);
+        gain.connect(sfxGainNode);
+        osc.start(now);
+        osc.stop(now + 0.46);
+
+      } else if (type === 'fanfare') {
+        const chordProgression = [
+          [523.25, 659.25, 783.99],
+          [587.33, 739.99, 880.00],
+          [659.25, 783.99, 1046.50],
+          [783.99, 987.77, 1174.66, 1567.98]
+        ];
+
+        chordProgression.forEach((chord, step) => {
+          const stepTime = now + (step * 0.16);
+          chord.forEach(freq => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+
+            osc.type = step === 3 ? 'sine' : 'triangle';
+            osc.frequency.setValueAtTime(freq, stepTime);
+
+            gain.gain.setValueAtTime(0, stepTime);
+            gain.gain.linearRampToValueAtTime(0.28, stepTime + 0.03);
+            gain.gain.exponentialRampToValueAtTime(0.001, stepTime + 0.45);
+
+            osc.connect(gain);
+            gain.connect(sfxGainNode);
+            osc.start(stepTime);
+            osc.stop(stepTime + 0.5);
+          });
+        });
+      }
+    }
+
+    function startBGM() {
+      if (bgmTimer) return;
+      if (!musicEnabled) return;
+
+      bgmTimer = setInterval(() => {
+        if (!musicEnabled || !audioCtx) return;
+        if (audioCtx.state === 'suspended') return;
+
+        const freq = BGM_MELODY[bgmStep];
+        bgmStep = (bgmStep + 1) % BGM_MELODY.length;
+
+        if (freq > 0) {
+          const now = audioCtx.currentTime;
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, now);
+
+          gain.gain.setValueAtTime(0.001, now);
+          gain.gain.linearRampToValueAtTime(0.18, now + 0.03);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+
+          osc.connect(gain);
+          gain.connect(bgmGainNode);
+          osc.start(now);
+          osc.stop(now + 0.3);
+        }
+      }, 300);
+    }
+
+    function stopBGM() {
+      if (bgmTimer) {
+        clearInterval(bgmTimer);
+        bgmTimer = null;
+      }
+    }
+
+    function toggleAudio() {
+      audioEnabled = !audioEnabled;
+      updateAudioButtons();
+      if (audioEnabled) playSound('pop');
+    }
+
+    function toggleMusic() {
+      musicEnabled = !musicEnabled;
+      if (musicEnabled) {
+        initAudio();
+        startBGM();
+      } else {
+        stopBGM();
+      }
+      updateMusicButtons();
+      if (audioEnabled) playSound('pop');
+    }
+
+    function updateAudioButtons() {
+      const iconHTML = audioEnabled ? SVG_ICONS.audioOn(22) : SVG_ICONS.audioOff(22);
+      const b1 = document.getElementById('btn-audio-toggle');
+      const b2 = document.getElementById('game-btn-audio-toggle');
+      if (b1) b1.innerHTML = iconHTML;
+      if (b2) b2.innerHTML = iconHTML;
+    }
+
+    function updateMusicButtons() {
+      const iconHTML = musicEnabled ? SVG_ICONS.musicOn(22) : SVG_ICONS.musicOff(22);
+      const b1 = document.getElementById('btn-music-toggle');
+      const b2 = document.getElementById('game-btn-music-toggle');
+      if (b1) b1.innerHTML = iconHTML;
+      if (b2) b2.innerHTML = iconHTML;
+    }
+
+    /* ===================================================
+       7. 3D CLASSROOM DIORAMA ENGINE (THREE.JS)
+       =================================================== */
+    let scene3d, camera3d, renderer3d;
+    let dioramaGroup;
+    let clockHandH, clockHandM;
+    let floatingStars = [];
+
+    function init3DClassroom() {
+      try {
+        if (typeof THREE === 'undefined') return;
+
+        const container = document.getElementById('canvas3d-container');
+        if (!container) return;
+
+        scene3d = new THREE.Scene();
+        scene3d.background = new THREE.Color(0xE0F2FE);
+
+        const aspect = window.innerWidth / window.innerHeight;
+        camera3d = new THREE.PerspectiveCamera(45, aspect, 0.1, 100);
+        camera3d.position.set(0, 3.5, 9.5);
+        camera3d.lookAt(0, 0.8, 0);
+
+        renderer3d = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer3d.setSize(window.innerWidth, window.innerHeight);
+        renderer3d.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+        renderer3d.shadowMap.enabled = true;
+        renderer3d.shadowMap.type = THREE.PCFSoftShadowMap;
+
+        container.appendChild(renderer3d.domElement);
+
+        // Pencahayaan
+        const ambLight = new THREE.AmbientLight(0xFFFFFF, 0.82);
+        scene3d.add(ambLight);
+
+        const dirLight = new THREE.DirectionalLight(0xFFFBEB, 0.8);
+        dirLight.position.set(5, 8, 6);
+        dirLight.castShadow = true;
+        scene3d.add(dirLight);
+
+        dioramaGroup = new THREE.Group();
+        scene3d.add(dioramaGroup);
+
+        // Lantai Kayu Pastel
+        const floorGeo = new THREE.BoxGeometry(10, 0.3, 10);
+        const floorMat = new THREE.MeshLambertMaterial({ color: 0xFDE68A });
+        const floor = new THREE.Mesh(floorGeo, floorMat);
+        floor.position.y = -0.15;
+        floor.receiveShadow = true;
+        dioramaGroup.add(floor);
+
+        // Permaidani Bulatan
+        const carpetGeo = new THREE.CylinderGeometry(2.2, 2.2, 0.05, 32);
+        const carpetMat = new THREE.MeshLambertMaterial({ color: 0x99F6E4 });
+        const carpet = new THREE.Mesh(carpetGeo, carpetMat);
+        carpet.position.set(0, 0.03, 0.5);
+        carpet.receiveShadow = true;
+        dioramaGroup.add(carpet);
+
+        // Dinding Belakang
+        const wallMat = new THREE.MeshLambertMaterial({ color: 0xFCE7F3 });
+        const backWall = new THREE.Mesh(new THREE.BoxGeometry(10, 6, 0.3), wallMat);
+        backWall.position.set(0, 2.8, -4.8);
+        dioramaGroup.add(backWall);
+
+        // Dinding Kiri
+        const leftWallMat = new THREE.MeshLambertMaterial({ color: 0xE0E7FF });
+        const leftWall = new THREE.Mesh(new THREE.BoxGeometry(0.3, 6, 10), leftWallMat);
+        leftWall.position.set(-4.8, 2.8, 0);
+        dioramaGroup.add(leftWall);
+
+        // Papan Hitam
+        const boardFrame = new THREE.Mesh(new THREE.BoxGeometry(4.2, 2.5, 0.1), new THREE.MeshLambertMaterial({ color: 0xB45309 }));
+        boardFrame.position.set(0, 3.2, -4.6);
+        dioramaGroup.add(boardFrame);
+
+        const boardCanvas = new THREE.Mesh(new THREE.BoxGeometry(3.9, 2.2, 0.12), new THREE.MeshLambertMaterial({ color: 0x1E293B }));
+        boardCanvas.position.set(0, 3.2, -4.58);
+        dioramaGroup.add(boardCanvas);
+
+        // Jam Dinding
+        const clockRim = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.55, 0.08, 24), new THREE.MeshLambertMaterial({ color: 0xF43F5E }));
+        clockRim.rotation.x = Math.PI / 2;
+        clockRim.position.set(2.8, 4.4, -4.6);
+        dioramaGroup.add(clockRim);
+
+        const clockFace = new THREE.Mesh(new THREE.CylinderGeometry(0.48, 0.48, 0.09, 24), new THREE.MeshLambertMaterial({ color: 0xFFFFFF }));
+        clockFace.rotation.x = Math.PI / 2;
+        clockFace.position.set(2.8, 4.4, -4.59);
+        dioramaGroup.add(clockFace);
+
+        clockHandH = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.25, 0.02), new THREE.MeshBasicMaterial({ color: 0x1E293B }));
+        clockHandH.position.set(2.8, 4.45, -4.54);
+        dioramaGroup.add(clockHandH);
+
+        clockHandM = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.34, 0.02), new THREE.MeshBasicMaterial({ color: 0x1E293B }));
+        clockHandM.position.set(2.8, 4.48, -4.54);
+        dioramaGroup.add(clockHandM);
+
+        // Rak Buku
+        const shelfGroup = new THREE.Group();
+        const shelfWood = new THREE.MeshLambertMaterial({ color: 0xD97706 });
+        const shelfBack = new THREE.Mesh(new THREE.BoxGeometry(0.2, 3.2, 2), shelfWood);
+        shelfGroup.add(shelfBack);
+
+        for (let y = 0; y <= 3; y++) {
+          const plank = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.1, 2), shelfWood);
+          plank.position.set(0.35, y * 0.95 - 1.4, 0);
+          shelfGroup.add(plank);
+        }
+
+        const bookColors = [0xEF4444, 0x3B82F6, 0x10B981, 0xF59E0B, 0x8B5CF6];
+        for (let b = 0; b < 10; b++) {
+          const bookMat = new THREE.MeshLambertMaterial({ color: bookColors[b % bookColors.length] });
+          const book = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.55, 0.12), bookMat);
+          const shelfIdx = Math.floor(b / 5);
+          book.position.set(0.35, shelfIdx * 0.95 - 0.98, -0.6 + (b % 5) * 0.25);
+          shelfGroup.add(book);
+        }
+
+        shelfGroup.position.set(-4.3, 1.8, -2.5);
+        dioramaGroup.add(shelfGroup);
+
+        // Bentuk Bintang Terapung Comel
+        const starGeo = new THREE.OctahedronGeometry(0.28);
+        const starColors = [0xFBBF24, 0xEC4899, 0x38BDF8, 0x4ADE80, 0xA855F7];
+        for (let s = 0; s < 6; s++) {
+          const sm = new THREE.Mesh(starGeo, new THREE.MeshLambertMaterial({ color: starColors[s % starColors.length] }));
+          sm.position.set((s - 2.5) * 1.5, 4.8 + (s % 2) * 0.4, -2.5 + (s % 3) * 0.8);
+          dioramaGroup.add(sm);
+          floatingStars.push({ mesh: sm, baseSpeed: 0.02 + s * 0.005, baseY: sm.position.y });
+        }
+
+        // Interaksi Parallax
+        window.addEventListener('pointermove', onPointerParallax, { passive: true });
+        window.addEventListener('resize', onWindowResize, { passive: true });
+
+      } catch (err) {
+        console.warn("3D initialization fallback:", err);
+      }
+    }
+
+    let targetRotY = 0;
+    let targetRotX = 0;
+
+    function onPointerParallax(e) {
+      const nx = (e.clientX / window.innerWidth) * 2 - 1;
+      const ny = -(e.clientY / window.innerHeight) * 2 + 1;
+      targetRotY = nx * 0.12;
+      targetRotX = ny * 0.06;
+    }
+
+    function onWindowResize() {
+      if (!camera3d || !renderer3d) return;
+      camera3d.aspect = window.innerWidth / window.innerHeight;
+      camera3d.updateProjectionMatrix();
+      renderer3d.setSize(window.innerWidth, window.innerHeight);
+    }
+
+    function animate3D(time) {
+      requestAnimationFrame(animate3D);
+
+      if (dioramaGroup) {
+        dioramaGroup.rotation.y += (targetRotY - dioramaGroup.rotation.y) * 0.05;
+        dioramaGroup.rotation.x += (targetRotX - dioramaGroup.rotation.x) * 0.05;
+      }
+
+      if (clockHandM) clockHandM.rotation.z -= 0.02;
+      if (clockHandH) clockHandH.rotation.z -= 0.002;
+
+      floatingStars.forEach((star, i) => {
+        star.mesh.rotation.x += star.baseSpeed;
+        star.mesh.rotation.y += star.baseSpeed;
+        star.mesh.position.y = star.baseY + Math.sin(time * 0.002 + i) * 0.15;
+      });
+
+      if (renderer3d && scene3d && camera3d) {
+        renderer3d.render(scene3d, camera3d);
+      }
+    }
+
+    /* ===================================================
+       8. LOCAL STORAGE PERSISTENCE
+       =================================================== */
+    const STORAGE_KEY_STATS = 'kinderKlub_colourSort_clean_stats';
+    let currentLang = 'bm';
+
+    let gameStats = {
+      lang: 'bm',
+      stars: 0,
+      coins: 0,
+      activitiesCompleted: 0,
+      totalSessions: 0,
+      bestSession: 0,
+      coloursDiscovered: [],
+      achievements: [],
+      recentHistory: [],
+      lastDailyGift: ''
+    };
+
+    function loadData() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY_STATS);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          gameStats = Object.assign(gameStats, parsed);
+        } else {
+          const oldKeys = [
+            'kinderKlub_colourSort_master_db',
+            'kinderKlub_colourSort_profiles_v3',
+            'kinderKlub_colourSort_profiles'
+          ];
+          for (let k of oldKeys) {
+            const oldData = localStorage.getItem(k);
+            if (oldData) {
+              try {
+                const parsedOld = JSON.parse(oldData);
+                const profs = parsedOld.profiles || parsedOld;
+                const firstKey = Object.keys(profs)[0];
+                if (firstKey && profs[firstKey]) {
+                  const p = profs[firstKey];
+                  gameStats.stars = Number(p.stars) || 0;
+                  gameStats.coins = Number(p.coins) || 0;
+                  gameStats.activitiesCompleted = Number(p.activitiesCompleted) || 0;
+                  gameStats.coloursDiscovered = Array.isArray(p.coloursDiscovered) ? p.coloursDiscovered : [];
+                  gameStats.achievements = Array.isArray(p.achievements) ? p.achievements : [];
+                  break;
+                }
+              } catch (e) {}
+            }
+          }
+        }
+        currentLang = gameStats.lang || 'bm';
+      } catch (e) {}
+    }
+
+    function saveData() {
+      try {
+        gameStats.lang = currentLang;
+        localStorage.setItem(STORAGE_KEY_STATS, JSON.stringify(gameStats));
+      } catch (e) {}
+    }
+
+    /* ===================================================
+       9. GAMEPLAY SESSION LOGIC
+       =================================================== */
+    let sessionMode = '5';
+    let currentActivityIndex = 1;
+    let totalActivitiesInSession = 5;
+    let sessionStarsEarned = 0;
+    let sessionCoinsEarned = 0;
+
+    let currentActivityData = {
+      colors: [],
+      objects: [],
+      sortedCount: 0,
+      totalObjects: 0,
+      wrongCount: 0
+    };
+
+    let selectedObjectId = null;
+
+    window.onload = function () {
+      init3DClassroom();
+      animate3D(0);
+      loadData();
+
+      // Render Mascots
+      const m1 = document.getElementById('mascot-menu');
+      const m2 = document.getElementById('mascot-game');
+      if (m1) m1.innerHTML = getMascotSVG('idle');
+      if (m2) m2.innerHTML = getMascotSVG('idle');
+
+      // Populate Static SVG Icons
+      document.getElementById('icon-menu-star').innerHTML = SVG_ICONS.star(22);
+      document.getElementById('icon-menu-coin').innerHTML = SVG_ICONS.coin(22);
+      document.getElementById('icon-game-star').innerHTML = SVG_ICONS.star(20);
+      document.getElementById('icon-game-coin').innerHTML = SVG_ICONS.coin(20);
+      document.getElementById('icon-lang-globe').innerHTML = SVG_ICONS.globe(20);
+      document.getElementById('game-icon-lang-globe').innerHTML = SVG_ICONS.globe(20);
+      document.getElementById('btn-achievements-hud').innerHTML = SVG_ICONS.trophy(22);
+      document.getElementById('btn-game-home').innerHTML = SVG_ICONS.home(22);
+
+      document.getElementById('btn-icon-mode-5').innerHTML = SVG_ICONS.gamepad(24);
+      document.getElementById('btn-icon-mode-10').innerHTML = SVG_ICONS.starBadge(24);
+      document.getElementById('btn-icon-mode-free').innerHTML = SVG_ICONS.infinity(24);
+      document.getElementById('btn-icon-gift').innerHTML = SVG_ICONS.gift(22);
+      document.getElementById('btn-icon-palette').innerHTML = SVG_ICONS.palette(22);
+
+      document.getElementById('daily-gift-big-icon').innerHTML = SVG_ICONS.gift(64);
+      document.getElementById('btn-icon-claim-coin').innerHTML = SVG_ICONS.coin(24);
+      document.getElementById('session-complete-popper').innerHTML = SVG_ICONS.party(64);
+      document.getElementById('complete-star-icon').innerHTML = SVG_ICONS.star(24);
+      document.getElementById('complete-coin-icon').innerHTML = SVG_ICONS.coin(24);
+      document.getElementById('btn-icon-replay').innerHTML = SVG_ICONS.replay(22);
+      document.getElementById('btn-icon-back-home').innerHTML = SVG_ICONS.home(22);
+
+      updateAudioButtons();
+      updateMusicButtons();
+      showScreen('screen-main');
+      updateUI();
+    };
+
+    function showScreen(screenId) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById(screenId).classList.add('active');
+    }
+
+    function toggleGlobalLanguage() {
+      playSound('pop');
+      currentLang = (currentLang === 'bm') ? 'en' : 'bm';
+      saveData();
+      updateUI();
+    }
+
+    function updateUI() {
+      const t = TRANSLATIONS[currentLang];
+
+      const langLabel = currentLang === 'bm' ? 'BM' : 'EN';
+      if (document.getElementById('lang-btn-text')) document.getElementById('lang-btn-text').innerText = langLabel;
+      if (document.getElementById('game-lang-btn-text')) document.getElementById('game-lang-btn-text').innerText = langLabel;
+
+      // Menu HUD
+      document.getElementById('menu-stars').innerText = gameStats.stars || 0;
+      document.getElementById('menu-coins').innerText = gameStats.coins || 0;
+      document.getElementById('welcome-msg').innerText = t.welcomeMsg;
+
+      document.getElementById('txt-mode-5').innerText = t.act5;
+      document.getElementById('txt-mode-10').innerText = t.act10;
+      document.getElementById('txt-mode-free').innerText = t.freePlay;
+      document.getElementById('txt-daily-gift').innerText = t.dailyGift;
+      document.getElementById('txt-collection').innerText = t.collection;
+
+      // Game HUD
+      document.getElementById('game-stars').innerText = gameStats.stars || 0;
+      document.getElementById('game-coins').innerText = gameStats.coins || 0;
+
+      if (document.getElementById('mascot-speech')) {
+        document.getElementById('mascot-speech').innerText = t.dragInstruction;
+      }
+
+      // Modals
+      document.getElementById('txt-daily-gift-title').innerText = t.dailyGift;
+      document.getElementById('daily-gift-desc').innerText = t.dailyGiftDesc;
+      document.getElementById('txt-collection-title').innerText = t.collection;
+      document.getElementById('txt-achievements-title').innerText = t.achievements;
+      document.getElementById('txt-complete-title').innerText = t.sessionComplete;
+      document.getElementById('txt-play-again').innerText = t.playAgain;
+      document.getElementById('txt-back-menu').innerText = t.back;
+
+      document.querySelectorAll('.txt-close').forEach(el => el.innerText = t.close);
+
+      // Refresh basket labels if in gameplay
+      if (currentActivityData.baskets && currentActivityData.baskets.length > 0) {
+        document.querySelectorAll('.basket-wrapper').forEach(wrapper => {
+          const colorKey = wrapper.dataset.color;
+          const labelEl = wrapper.querySelector('.basket-label');
+          if (labelEl && colorKey && t.colors[colorKey]) {
+            labelEl.innerText = t.colors[colorKey];
+          }
+        });
+      }
+    }
+
+    /* ===================================================
+       10. ACTIVITY GENERATION (ANTI-REPEAT & DIVERSE)
+       =================================================== */
+    function generateActivity() {
+      const allColors = Object.keys(COLOR_DEFS);
+      let selectedColors = [];
+      let activityObjects = [];
+      let fingerprint = '';
+
+      let attempts = 0;
+      do {
+        attempts++;
+        const numColors = (Math.random() < 0.6) ? 2 : 3;
+        selectedColors = [...allColors].sort(() => 0.5 - Math.random()).slice(0, numColors);
+
+        activityObjects = [];
+        selectedColors.forEach(color => {
+          for (let i = 0; i < 2; i++) {
+            const randomType = OBJECT_TYPES[Math.floor(Math.random() * OBJECT_TYPES.length)];
+            activityObjects.push({
+              id: 'obj_' + Math.random().toString(36).substr(2, 9),
+              type: randomType,
+              color: color,
+              sorted: false
+            });
+          }
+        });
+
+        const colorKeyStr = [...selectedColors].sort().join(',');
+        const objKeyStr = activityObjects.map(o => `${o.color}_${o.type}`).sort().join(',');
+        fingerprint = `${colorKeyStr}|${objKeyStr}`;
+
+      } while (gameStats.recentHistory && gameStats.recentHistory.includes(fingerprint) && attempts < 50);
+
+      if (!gameStats.recentHistory) gameStats.recentHistory = [];
+      gameStats.recentHistory.push(fingerprint);
+      if (gameStats.recentHistory.length > 200) gameStats.recentHistory.shift();
+      saveData();
+
+      activityObjects.sort(() => 0.5 - Math.random());
+      const shuffledBaskets = [...selectedColors].sort(() => 0.5 - Math.random());
+
+      currentActivityData = {
+        colors: selectedColors,
+        baskets: shuffledBaskets,
+        objects: activityObjects,
+        sortedCount: 0,
+        totalObjects: activityObjects.length,
+        wrongCount: 0
+      };
+
+      renderActivity();
+    }
+
+    function renderActivity() {
+      const t = TRANSLATIONS[currentLang];
+      selectedObjectId = null;
+
+      if (sessionMode === 'free') {
+        document.getElementById('txt-act-progress').innerText = `${t.currentActivity} #${currentActivityIndex}`;
+      } else {
+        document.getElementById('txt-act-progress').innerText = `${t.activity} ${currentActivityIndex} / ${totalActivitiesInSession}`;
+      }
+
+      document.getElementById('mascot-speech').innerText = t.dragInstruction;
+
+      const bubblesContainer = document.getElementById('sort-progress-bubbles');
+      bubblesContainer.innerHTML = '';
+      for (let i = 0; i < currentActivityData.totalObjects; i++) {
+        const dot = document.createElement('div');
+        dot.className = 'bubble-dot' + (i < currentActivityData.sortedCount ? ' active' : '');
+        bubblesContainer.appendChild(dot);
+      }
+
+      const basketsContainer = document.getElementById('baskets-container');
+      basketsContainer.innerHTML = '';
+      currentActivityData.baskets.forEach(colorKey => {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'basket-wrapper';
+        wrapper.dataset.color = colorKey;
+        wrapper.innerHTML = `
+          ${getBasketSVG(colorKey)}
+          <div class="basket-label" style="color: ${COLOR_DEFS[colorKey].dark}">${t.colors[colorKey]}</div>
+        `;
+
+        wrapper.addEventListener('click', () => onBasketTapped(colorKey, wrapper));
+        basketsContainer.appendChild(wrapper);
+      });
+
+      const playArea = document.getElementById('play-area');
+      playArea.innerHTML = '';
+      currentActivityData.objects.forEach(obj => {
+        if (obj.sorted) return;
+
+        const card = document.createElement('div');
+        card.className = 'object-card';
+        card.id = obj.id;
+        card.dataset.color = obj.color;
+        card.innerHTML = getObjectSVG(obj.type, obj.color);
+
+        attachDragHandlers(card, obj);
+        playArea.appendChild(card);
+      });
+    }
+
+    /* ===================================================
+       11. DRAG & DROP + TAP FALLBACK (MOBILE POINTER EVENTS)
+       =================================================== */
+    function attachDragHandlers(card, obj) {
+      let isDragging = false;
+      let startX = 0, startY = 0;
+
+      card.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        isDragging = false;
+        startX = e.clientX;
+        startY = e.clientY;
+
+        card.setPointerCapture(e.pointerId);
+
+        const onPointerMove = (moveEv) => {
+          const dist = Math.hypot(moveEv.clientX - startX, moveEv.clientY - startY);
+          
+          if (dist > 6 && !isDragging) {
+            isDragging = true;
+            card.classList.add('dragging');
+            playSound('pop');
+            document.querySelectorAll('.basket-wrapper').forEach(b => b.classList.add('pulse-highlight'));
+          }
+
+          if (isDragging) {
+            card.style.left = (moveEv.clientX - 45) + 'px';
+            card.style.top = (moveEv.clientY - 45) + 'px';
+          }
+        };
+
+        const onPointerUp = (upEv) => {
+          card.releasePointerCapture(upEv.pointerId);
+          card.removeEventListener('pointermove', onPointerMove);
+          card.removeEventListener('pointerup', onPointerUp);
+
+          document.querySelectorAll('.basket-wrapper').forEach(b => b.classList.remove('pulse-highlight'));
+
+          if (isDragging) {
+            card.classList.remove('dragging');
+            card.style.left = '';
+            card.style.top = '';
+
+            const dropTarget = checkBasketCollision(upEv.clientX, upEv.clientY);
+            if (dropTarget) {
+              attemptSort(obj, dropTarget.dataset.color, card, dropTarget);
+            }
+          } else {
+            onObjectTapped(obj, card);
+          }
+        };
+
+        card.addEventListener('pointermove', onPointerMove);
+        card.addEventListener('pointerup', onPointerUp);
+      });
+    }
+
+    function checkBasketCollision(x, y) {
+      const baskets = document.querySelectorAll('.basket-wrapper');
+      for (let b of baskets) {
+        const rect = b.getBoundingClientRect();
+        if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
+          return b;
+        }
+      }
+      return null;
+    }
+
+    function onObjectTapped(obj, cardEl) {
+      playSound('pop');
+      document.querySelectorAll('.object-card').forEach(c => c.classList.remove('selected'));
+      document.querySelectorAll('.basket-wrapper').forEach(b => b.classList.remove('pulse-highlight'));
+
+      if (selectedObjectId === obj.id) {
+        selectedObjectId = null;
+      } else {
+        selectedObjectId = obj.id;
+        cardEl.classList.add('selected');
+        document.querySelectorAll('.basket-wrapper').forEach(b => b.classList.add('pulse-highlight'));
+      }
+    }
+
+    function onBasketTapped(basketColor, basketEl) {
+      if (!selectedObjectId) return;
+      const obj = currentActivityData.objects.find(o => o.id === selectedObjectId);
+      const cardEl = document.getElementById(selectedObjectId);
+      if (obj && cardEl) {
+        attemptSort(obj, basketColor, cardEl, basketEl);
+      }
+    }
+
+    function attemptSort(obj, targetColor, cardEl, basketEl) {
+      const t = TRANSLATIONS[currentLang];
+
+      if (obj.color === targetColor) {
+        obj.sorted = true;
+        currentActivityData.sortedCount++;
+        playSound('correct');
+
+        basketEl.classList.add('bounce');
+        setTimeout(() => basketEl.classList.remove('bounce'), 500);
+
+        const mascotEl = document.getElementById('mascot-game');
+        if (mascotEl) mascotEl.innerHTML = getMascotSVG('happy');
+        setTimeout(() => {
+          if (mascotEl) mascotEl.innerHTML = getMascotSVG('idle');
+        }, 1000);
+
+        selectedObjectId = null;
+        document.querySelectorAll('.basket-wrapper').forEach(b => b.classList.remove('pulse-highlight'));
+
+        if (!gameStats.coloursDiscovered.includes(obj.color)) {
+          gameStats.coloursDiscovered.push(obj.color);
+          saveData();
+        }
+
+        renderActivity();
+
+        if (currentActivityData.sortedCount >= currentActivityData.totalObjects) {
+          onActivityCompleted();
+        }
+
+      } else {
+        playSound('wrong');
+        currentActivityData.wrongCount++;
+
+        // 2 Kali salah terus ke aktiviti seterusnya
+        if (currentActivityData.wrongCount >= 2) {
+          showToast(t.nextActivityPrompt);
+          
+          cardEl.style.transform = 'translateX(-10px)';
+          setTimeout(() => cardEl.style.transform = 'translateX(10px)', 100);
+          setTimeout(() => cardEl.style.transform = 'none', 200);
+
+          setTimeout(() => {
+            if (sessionMode !== 'free' && currentActivityIndex >= totalActivitiesInSession) {
+              recordSessionCompletion();
+              openSessionComplete();
+            } else {
+              currentActivityIndex++;
+              generateActivity();
+            }
+          }, 1200);
+
+        } else {
+          showToast(t.tryAgain);
+
+          cardEl.style.transform = 'translateX(-10px)';
+          setTimeout(() => cardEl.style.transform = 'translateX(10px)', 100);
+          setTimeout(() => cardEl.style.transform = 'none', 200);
+        }
+      }
+    }
+
+    function showToast(text) {
+      const toast = document.createElement('div');
+      toast.className = 'toast-feedback';
+      toast.innerText = text;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 1500);
+    }
+
+    function onActivityCompleted() {
+      gameStats.activitiesCompleted = (gameStats.activitiesCompleted || 0) + 1;
+      gameStats.stars = (gameStats.stars || 0) + 1;
+      gameStats.coins = (gameStats.coins || 0) + 5;
+      sessionStarsEarned += 1;
+      sessionCoinsEarned += 5;
+
+      saveData();
+      updateUI();
+      playSound('fanfare');
+
+      setTimeout(() => {
+        if (sessionMode !== 'free' && currentActivityIndex >= totalActivitiesInSession) {
+          recordSessionCompletion();
+          openSessionComplete();
+        } else {
+          currentActivityIndex++;
+          generateActivity();
+        }
+      }, 800);
+    }
+
+    function recordSessionCompletion() {
+      gameStats.totalSessions = (gameStats.totalSessions || 0) + 1;
+      if (currentActivityIndex > (gameStats.bestSession || 0)) {
+        gameStats.bestSession = currentActivityIndex;
+      }
+      saveData();
+      updateUI();
+    }
+
+    /* ===================================================
+       12. MODAL & SCREEN CONTROLLERS
+       =================================================== */
+    function startGameSession(mode) {
+      playSound('pop');
+      sessionMode = mode;
+      currentActivityIndex = 1;
+      sessionStarsEarned = 0;
+      sessionCoinsEarned = 0;
+      totalActivitiesInSession = mode === '10' ? 10 : 5;
+
+      showScreen('screen-game');
+      updateUI();
+      generateActivity();
+    }
+
+    function exitToMenu() {
+      playSound('pop');
+      if (sessionStarsEarned > 0 || sessionCoinsEarned > 0) {
+        recordSessionCompletion();
+      }
+      closeModal('modal-session-complete');
+      showScreen('screen-main');
+      updateUI();
+    }
+
+    function replaySession() {
+      closeModal('modal-session-complete');
+      startGameSession(sessionMode);
+    }
+
+    function openDailyGift() {
+      playSound('pop');
+      const t = TRANSLATIONS[currentLang];
+      const today = new Date().toISOString().split('T')[0];
+
+      document.getElementById('daily-gift-desc').innerText = t.dailyGiftDesc;
+
+      const btn = document.getElementById('btn-claim-gift');
+      if (gameStats.lastDailyGift === today) {
+        btn.disabled = true;
+        document.getElementById('txt-claim-btn').innerText = t.alreadyClaimed;
+      } else {
+        btn.disabled = false;
+        document.getElementById('txt-claim-btn').innerText = t.claimGift;
+      }
+
+      document.getElementById('modal-daily-gift').classList.add('active');
+    }
+
+    function claimDailyGift() {
+      const t = TRANSLATIONS[currentLang];
+      playSound('fanfare');
+      gameStats.coins = (gameStats.coins || 0) + 10;
+      gameStats.lastDailyGift = new Date().toISOString().split('T')[0];
+      saveData();
+      updateUI();
+
+      showToast(t.giftClaimedMsg);
+      closeModal('modal-daily-gift');
+    }
+
+    function openCollection() {
+      playSound('pop');
+      const t = TRANSLATIONS[currentLang];
+      const container = document.getElementById('collection-grid-container');
+      container.innerHTML = '';
+
+      Object.keys(COLOR_DEFS).forEach(colorKey => {
+        const discovered = (gameStats.coloursDiscovered || []).includes(colorKey);
+        const card = document.createElement('div');
+        card.className = 'color-badge-card';
+        card.style.opacity = discovered ? '1' : '0.35';
+        card.innerHTML = `
+          <div class="color-circle" style="background: ${COLOR_DEFS[colorKey].hex}"></div>
+          <div style="font-weight: 800; font-size: 0.72rem; text-transform: uppercase;">${t.colors[colorKey]}</div>
+          <div class="svg-icon" style="margin-top: 2px;">${discovered ? SVG_ICONS.check(18) : SVG_ICONS.lock(18)}</div>
+        `;
+        container.appendChild(card);
+      });
+
+      document.getElementById('modal-collection').classList.add('active');
+    }
+
+    function openAchievements() {
+      playSound('pop');
+      const t = TRANSLATIONS[currentLang];
+      const container = document.getElementById('achievements-list-container');
+      container.innerHTML = '';
+
+      const acts = Number(gameStats.activitiesCompleted) || 0;
+      const cols = (gameStats.coloursDiscovered || []).length;
+
+      Object.keys(t.achievementsList).forEach(key => {
+        const ach = t.achievementsList[key];
+        const currentProgress = ach.reqType === 'act' ? acts : cols;
+        const targetProgress = ach.reqVal;
+        const unlocked = currentProgress >= targetProgress;
+
+        const progressDisplay = unlocked 
+          ? `<span style="color: #16A34A; font-weight: 800;">${t.unlockedTxt}</span>` 
+          : `<span style="color: #EA580C; font-weight: 700;">${t.progressTxt}: ${Math.min(currentProgress, targetProgress)} / ${targetProgress}</span>`;
+
+        const item = document.createElement('div');
+        item.className = 'achievement-item' + (unlocked ? ' unlocked-card' : '');
+        item.style.opacity = unlocked ? '1' : '0.65';
+        item.innerHTML = `
+          <div class="svg-icon">${unlocked ? SVG_ICONS.trophy(32) : SVG_ICONS.lock(28)}</div>
+          <div style="flex: 1;">
+            <div style="font-weight: 800; color: #1E293B;">${ach.name}</div>
+            <div style="font-size: 0.8rem; color: #64748B;">${ach.desc}</div>
+            <div style="font-size: 0.75rem; margin-top: 3px;">${progressDisplay}</div>
+          </div>
+        `;
+        container.appendChild(item);
+      });
+
+      document.getElementById('modal-achievements').classList.add('active');
+    }
+
+    function openSessionComplete() {
+      document.getElementById('complete-stars').innerText = sessionStarsEarned;
+      document.getElementById('complete-coins').innerText = sessionCoinsEarned;
+      document.getElementById('summary-total-stars').innerText = gameStats.stars || 0;
+      document.getElementById('summary-total-coins').innerText = gameStats.coins || 0;
+      document.getElementById('modal-session-complete').classList.add('active');
+    }
+
+    function closeModal(id) {
+      playSound('pop');
+      document.getElementById(id).classList.remove('active');
+    }
+  </script>
+</body>
+</html>
